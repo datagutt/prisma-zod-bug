@@ -1,0 +1,42 @@
+datasource db {
+  provider          = "postgresql"
+  url               = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl         = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING") // used for migrations
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+generator zod {
+  provider                  = "zod-prisma-types"
+  output                    = "./generated/schemas" // default is ./generated/zod
+  useMultipleFiles          = true // default is false
+  createModelTypes          = false // default is true
+  createRelationValuesTypes = true // default is false
+}
+
+/// @@Gen.model(hide: true)
+model Role {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  deletedAt DateTime?
+
+  PermissionForRole PermissionForRole[]
+}
+
+/// @@Gen.model(hide: true)
+model PermissionForRole {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  @@unique([roleId])
+}
